@@ -132,19 +132,26 @@ export function HamburgerMenuLP({ ...props }: DrawerTriggerProps) {
           </DrawerActionTrigger>
         </DrawerHeader>
         <DrawerBody p={0}>
-          <Stack align={'stretch'} gap={6}>
-            <MenuLink href={'/'} delay={0.1}>
-              トップ
-            </MenuLink>
-            <MenuLink href={'/pricing'} delay={0.2}>
-              料金
-            </MenuLink>
-            <MenuLink href={'/merits'} delay={0.3}>
-              インポス請求書のメリット
-            </MenuLink>
-            <MenuLink href={'/sign-in'} delay={0.4}>
-              ログイン
-            </MenuLink>
+          <Stack>
+            <DrawerActionTrigger
+              display={'flex'}
+              flexDir={'column'}
+              alignItems={'stretch'}
+              gap={6}
+            >
+              <MenuLink href={'/'} delay={0.1}>
+                トップ
+              </MenuLink>
+              <MenuLink href={'/pricing'} delay={0.2}>
+                料金
+              </MenuLink>
+              <MenuLink href={'/merit'} delay={0.3}>
+                インポス請求書のメリット
+              </MenuLink>
+              <MenuLink href={'/sign-in'} delay={0.4}>
+                ログイン
+              </MenuLink>
+            </DrawerActionTrigger>
           </Stack>
         </DrawerBody>
         <DrawerFooter

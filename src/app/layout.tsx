@@ -1,15 +1,17 @@
-import type { Metadata } from 'next'
+import { Metadata } from 'next'
 
 import { Provider } from '@/app/provider'
-import { home } from '@/components/pageData'
 
-export const metadata: Metadata = home.metadata
+export const metadata: Metadata = {
+  title: 'Imposu',
+  description: 'Imposu',
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="ja">
       <body>

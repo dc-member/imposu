@@ -1,7 +1,7 @@
 ARG VERSION=latest
 
 FROM node:18
-ARG DATABASE_URL
+ARG DATABASE_URL=postgresql://postgres:postgres@db:5432/imposu?schema=public
 
 # コンテナ内のwork dirを設定
 WORKDIR /src

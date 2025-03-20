@@ -22,6 +22,7 @@ export function Button({
   ...props
 }: Props) {
   const buttonTransition = 'cubic-bezier(0.22, 1, 0.36, 1)'
+  const buttonHeight = '48px'
 
   const style: ButtonProps = useMemo(() => {
     switch (variant) {
@@ -35,6 +36,7 @@ export function Button({
             transform: 'translateY(2px)',
             boxShadow: 'none',
           },
+          h: buttonHeight,
         }
       case 'secondary':
         return {
@@ -48,6 +50,7 @@ export function Button({
             transform: 'translateY(2px)',
             boxShadow: 'none',
           },
+          h: buttonHeight,
         }
       case 'cta':
         return {
@@ -59,9 +62,12 @@ export function Button({
             transform: 'translateY(2px)',
             boxShadow: 'none',
           },
+          h: buttonHeight,
         }
       default:
-        return {}
+        return {
+          h: buttonHeight,
+        }
     }
   }, [variant, buttonTransition])
 
@@ -119,7 +125,6 @@ export function Button({
         borderRadius={'md'}
         fontSize={'md'}
         fontWeight={'900'}
-        px={5}
         css={{
           '&:hover .pathOpacity': { opacity: 1 },
           '&:hover .pathTranslate': { transform: 'translateX(3px)' },
@@ -130,6 +135,11 @@ export function Button({
           as={NextLink}
           fontWeight={'900'}
           href={url}
+          px={5}
+          display={'flex'}
+          justifyContent={'center'}
+          w={'100%'}
+          h={buttonHeight}
           target={isExternal ? '_blank' : '_self'}
           rel={isExternal ? 'noopener noreferrer' : undefined}
           color={style.color}

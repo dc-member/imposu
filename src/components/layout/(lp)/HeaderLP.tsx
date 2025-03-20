@@ -7,7 +7,12 @@ import { Link } from '@/components/ui/Link'
 
 export function HeaderLP() {
   return (
-    <Box as={'header'} borderBottom={'1px dashed'} borderColor={'DarkGray.100'}>
+    <Box
+      as={'header'}
+      borderBottom={'1px dashed'}
+      borderColor={'DarkGray.100'}
+      h={{ base: '60px', md: '72px' }}
+    >
       <Grid
         className="max6XL px7"
         templateColumns={{ base: '1fr 1fr', md: '1fr 1fr 1fr' }}
@@ -24,8 +29,8 @@ export function HeaderLP() {
           alignItems={'center'}
           gap={8}
         >
-          <NavLink href={'/#pricing'}>料金</NavLink>
-          <NavLink href={'/#benefits'}>メリット</NavLink>
+          <NavLink href={'/pricing'}>料金</NavLink>
+          <NavLink href={'/merit'}>メリット</NavLink>
         </Flex>
 
         {/* Hamburger Menu */}
