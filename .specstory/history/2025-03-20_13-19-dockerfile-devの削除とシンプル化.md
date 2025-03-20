@@ -947,6 +947,274 @@ $
 
 ---
 
+SSH設定を確認しました。以下の問題があります：
+
+1. デフォルトの `github.com` ホストが `id_rsa` 鍵を使用するよう設定されていますが、この鍵は `tomoyaokuda-ncms` アカウントに紐づいているようです。
+
+2. `tomoya-okuda` アカウント用の鍵（おそらく `id_personal_rsa`）は、`github-personal` というホスト名に設定されています。
+
+SSH接続を修正するには2つの方法があります：
+
+### 方法1: 既存のgithub.com設定を修正する
+
+SSHの設定ファイルを編集して、`github.com`のデフォルト鍵を正しいものに変更します：
+
+---
+
+```diff
+- 
++ # 共通設定
++ Host *
++     IgnoreUnknown AddKeysToAgent,UseKeychain
++     AddKeysToAgent yes
++     UseKeychain yes
++ 
++ # 既存の設定
++ Host github.com
++     HostName github.com
++     Port 22
++     User git
++     IdentityFile ~/.ssh/id_personal_rsa
++     IdentitiesOnly yes
++ 
++ # メインアカウント
++ Host github-main
++     HostName github.com
++     IdentityFile ~/.ssh/id_rsa
++     User git
++     Port 22
++     TCPKeepAlive yes
++     IdentitiesOnly yes
++ 
++ # DCアカウント
++ Host github-sub
++     HostName github.com
++     IdentityFile ~/.ssh/id_rsa_sub
++     User git
++     Port 22
++     TCPKeepAlive yes
++     IdentitiesOnly yes
++ 
++ # 個人アカウント
++ Host github-personal
++     HostName github.com
++     IdentityFile ~/.ssh/id_personal_rsa
++     User git
++     Port 22
++     TCPKeepAlive yes
++     IdentitiesOnly yes 
+```
+
+---
+
+SSHの設定ファイルを修正しました。主な変更点：
+
+1. `github.com` のホスト設定で:
+   - `HostName` を `ssh.github.com` から `github.com` に変更
+   - `Port` を `443` から `22` に変更
+   - `IdentityFile` を `~/.ssh/id_rsa` から `~/.ssh/id_personal_rsa` に変更
+   - `IdentitiesOnly yes` を追加して、指定された鍵のみ使用するようにしました
+
+これでGitHubへの接続時に個人アカウント用の鍵が使用されるようになります。変更を確認しましょう：
+
+---
+
+```bash
+ssh -T git@github.com
+```
+
+```
+$ ssh -T git@github.com
+Hi tomoyaokuda-ncms! You've successfully authenticated, but GitHub does not provide shell access.
+
+[tomoyaokuda@TomoyanoMacBook-Pro:~/Documents/builds/imposu]+[main]
+$
+```
+
+---
+
+まだ同じアカウントとして認識されています。SSHエージェントにキャッシュされた認証情報が残っているかもしれません。SSHエージェントをリスタートして再試行してみましょう：
+
+---
+
+```bash
+eval "$(ssh-agent -s)" && ssh-add -D && ssh-add ~/.ssh/id_personal_rsa
+```
+
+```
+$ eval "$(ssh-agent -s)" && ssh-add -D && ssh-add ~/.ssh/id_personal_rsa
+Agent pid 37372
+All identities removed.
+Enter passphrase for /Users/tomoyaokuda/.ssh/id_personal_rsa: 
+Identity added: /Users/tomoyaokuda/.ssh/id_personal_rsa (tomoyaokuda@TomoyanoMacBook-Pro.local)
+
+[tomoyaokuda@TomoyanoMacBook-Pro:~/Documents/builds/imposu]+[main]
+$
+```
+
+---
+
+個人アカウント用の鍵をSSHエージェントに追加しました。もう一度接続テストを行いましょう：
+
+---
+
+```bash
+ssh -T git@github.com
+```
+
+```
+$ ssh -T git@github.com
+Hi tomoya-okuda! You've successfully authenticated, but GitHub does not provide shell access.
+
+[tomoyaokuda@TomoyanoMacBook-Pro:~/Documents/builds/imposu]+[main]
+$
+```
+
+---
+
+成功しました！今度はGitHubアカウント「tomoya-okuda」として認識されています。
+
+これで、元のリポジトリにプッシュできるようになりました。最後にgitコマンドを実行してみましょう：
+
+---
+
+```bash
+git status
+```
+
+```
+$ git status
+On branch main
+Your branch is ahead of 'origin/main' by 2 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+
+[tomoyaokuda@TomoyanoMacBook-Pro:~/Documents/builds/imposu][main]
+$
+```
+
+---
+
+正しいアカウントでSSH接続できるようになりました。変更をプッシュする準備ができています。
+
+以下がSSSH鍵の切り替え方法の要約です：
+
+1. SSH設定ファイル（~/.ssh/config）を編集して、github.comホストに正しい鍵を指定する
+2. SSHエージェントをリセットして古い認証情報を削除する
+3. 正しい鍵をSSHエージェントに追加する
+
+今後異なるGitHubアカウントを切り替える場合は、以下のコマンドを実行するだけで簡単に切り替えられます：
+```
+eval "$(ssh-agent -s)" && ssh-add -D && ssh-add ~/.ssh/[使いたい鍵のファイル名]
+```
+
+---
+
+_**User**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+先ほどの設定変更にもかかわらず、まだプッシュ時に権限エラーが発生しているようですね。
+
+エラーメッセージ：
+```
+ERROR: Permission to tomoya-okuda/imposu.git denied to tomoyaokuda-ncms.
+```
+
+これを解決するには、以下の方法を試してみましょう：
+
+1. SSH接続キャッシュをクリアして確実に新しい鍵を使用する：
+
+---
+
+```bash
+ssh-add -D && ssh-add ~/.ssh/id_personal_rsa
+```
+
+```
+$ ssh-add -D && ssh-add ~/.ssh/id_personal_rsa
+All identities removed.
+Enter passphrase for /Users/tomoyaokuda/.ssh/id_personal_rsa: 
+Identity added: /Users/tomoyaokuda/.ssh/id_personal_rsa (tomoyaokuda@TomoyanoMacBook-Pro.local)
+
+[tomoyaokuda@TomoyanoMacBook-Pro:~/Documents/builds/imposu][main]
+$
+```
+
+---
+
+2. Gitのリモート接続URLを確認して、正しく設定されていることを確かめます：
+
+---
+
+```bash
+git remote -v
+```
+
+```
+$ git remote -v
+origin  git@github.com:tomoya-okuda/imposu.git (fetch)
+origin  git@github.com:tomoya-okuda/imposu.git (push)
+
+[tomoyaokuda@TomoyanoMacBook-Pro:~/Documents/builds/imposu][main]
+$
+```
+
+---
+
+3. 今度はHTTPSプロトコルに変更してみましょう。これにより別の認証方法を使用できます：
+
+---
+
+```bash
+git remote set-url origin https://github.com/tomoya-okuda/imposu.git
+```
+
+```
+$ git remote set-url origin https://github.com/tomoya-okuda/imposu.git
+
+[tomoyaokuda@TomoyanoMacBook-Pro:~/Documents/builds/imposu][main]
+$
+```
+
+---
+
+4. これでプッシュを試みてください。GitHub認証ダイアログが表示されるので、tomoya-okudaアカウントの認証情報を入力します：
+
+---
+
+```bash
+git push
+```
+
+```
+$ git push
+remote: Permission to tomoya-okuda/imposu.git denied to dc-member.
+fatal: unable to access 'https://github.com/tomoya-okuda/imposu.git/': The requested URL returned error: 403
+
+[tomoyaokuda@TomoyanoMacBook-Pro:~/Documents/builds/imposu][main]
+$
+```
+
+---
+
+HTTPSプロトコルでも別のアカウント（dc-member）で認証されているようです。Gitの認証情報キャッシュをクリアする必要があります：
+
+---
+
+Cancelled
+
+---
+
 
 
 ---
